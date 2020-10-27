@@ -1137,6 +1137,31 @@ Logic.registerPanel(ALWAYS_OPEN_IN_PICKER, {
 
     document.getElementById("new-container-div").innerHTML = "";
 
+    const tr = document.createElement("tr");
+    tr.classList.add("menu-item", "hover-highlight", "keyboard-nav");
+    const td = document.createElement("td");
+    td.innerHTML = Utils.escaped`
+              <div class="menu-icon hover-highlight">
+                  <div class="usercontext-icon">
+                  </div>
+              </div>
+              <span class="menu-text">Default Container</span>`;
+
+    fragment.appendChild(tr);
+    tr.appendChild(td);
+    const defaultContainer = {
+      name: "Default",
+      cookieStoreId: "firefox-default",
+      icon: "default-tab",
+      color: "default-tab",
+      numberOfHiddenTabs: 0,
+      numberOfOpenTabs: 0
+    };
+    Utils.addEnterHandler(tr, () => {
+      Utils.alwaysOpenInContainer(defaultContainer);
+      window.close();
+    });
+
     Logic.identities().forEach(identity => {
       const tr = document.createElement("tr");
       tr.classList.add("menu-item", "hover-highlight", "keyboard-nav");
