@@ -92,14 +92,21 @@ const messageHandler = {
         );
         break;
       case "assignAndReloadInContainer":
-        tab = await assignManager.reloadPageInContainer(
-          m.url, 
-          m.currentUserContextId, 
-          m.newUserContextId, 
-          m.tabIndex, 
-          m.active,
-          true
-        );
+        if (m.newUserContextId === "default") {
+          console.log("opening in default container");
+          tab = await assignManager.reloadPageInDefaultContainer(m.url, m.tabIndex + 1, true, m.tabIndex + 1);
+          console.log("tab:", tab);
+        } else {
+          tab = await assignManager.reloadPageInContainer(
+            m.url,
+            m.currentUserContextId,
+            m.newUserContextId,
+            m.tabIndex,
+            m.active,
+            true
+          );
+        }
+
         // m.tabId is used for where to place the in content message
         // m.url is the assignment to be removed/added
         response = browser.tabs.get(tab.id).then((tab) => {

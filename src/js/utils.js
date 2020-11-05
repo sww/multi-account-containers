@@ -112,7 +112,7 @@ const Utils = {
 
   async alwaysOpenInContainer(identity) {
     const currentTab = await this.currentTab();
-    const assignedUserContextId = this.userContextId(identity.cookieStoreId);
+    const assignedUserContextId = this.userContextId(identity.cookieStoreId) || "default";
     if (currentTab.cookieStoreId !== identity.cookieStoreId) {
       return await browser.runtime.sendMessage({
         method: "assignAndReloadInContainer",

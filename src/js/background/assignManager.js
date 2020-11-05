@@ -205,7 +205,7 @@ window.assignManager = {
 
     // The container we have in the assignment map isn't present any
     // more so lets remove it then continue the existing load
-    if (siteSettings && !container) {
+    if (siteSettings && siteSettings.userContextId !== "default" && !container) {
       this.deleteContainer(siteSettings.userContextId);
       return {};
     }
@@ -231,6 +231,8 @@ window.assignManager = {
     const siteIsolatedReloadInDefault = 
       await this._maybeSiteIsolatedReloadInDefault(siteSettings, tab);
 
+    const inContainer = userContextId !== false;
+    const shouldOpenSiteInDefaultContainer = siteSettings !== null ? (siteSettings.userContextId === "default") : false;
     if (!siteIsolatedReloadInDefault) {
       if (!siteSettings
           || userContextId === siteSettings.userContextId
@@ -242,8 +244,21 @@ window.assignManager = {
     const removeTab = backgroundLogic.NEW_TAB_PAGES.has(tab.url)
       || (messageHandler.lastCreatedTab
         && messageHandler.lastCreatedTab.id === tab.id)
-      || replaceTabEnabled;
+          || replaceTabEnabled
+          || (shouldOpenSiteInDefaultContainer && inContainer);
     const openTabId = removeTab ? tab.openerTabId : tab.id;
+    if (shouldOpenSiteInDefaultContainer) {
+      if (inContainer) {
+        this.reloadPageInDefaultContainer(
+          options.url,
+          tab.index + 1,
+          tab.active,
+          openTabId
+        );
+      } else {
+        return {};
+      }
+    }
 
     if (!this.canceledRequests[tab.id]) {
       // we decided to cancel the request at this point, register 
@@ -294,7 +309,7 @@ window.assignManager = {
         tab.active,
         openTabId
       );
-    } else {
+    } else if (!removeTab) {
       this.reloadPageInContainer(
         options.url,
         userContextId,
@@ -693,7 +708,12 @@ window.assignManager = {
     // does not automatically return to the original opener tab. To get this desired behaviour,
     // we MUST specify the openerTabId when creating the new tab.
     const cookieStoreId = "firefox-default";
-    browser.tabs.create({url, cookieStoreId, index, active, openerTabId});
+    return browser.tabs.create({
+      url: url,
+      cookieStoreId: cookieStoreId,
+      index: index,
+      active: active
+    });
   },
 
   reloadPageInContainer(url, currentUserContextId, userContextId, index, active, neverAsk = false, openerTabId = null) {
